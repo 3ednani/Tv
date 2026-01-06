@@ -4,68 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Sports Player</title>
-    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { margin: 0; padding: 0; background: #0b0b0b; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
-        header { background: #1a1a1a; padding: 15px; text-align: center; border-bottom: 2px solid #333; font-weight: bold; }
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-        #video-container { flex: 3; background: #000; }
-        .sidebar { flex: 1; background: #1a1a1a; overflow-y: auto; border-left: 1px solid #333; max-width: 350px; }
-        .chan-item { padding: 15px; border-bottom: 1px solid #2a2a2a; cursor: pointer; }
-        .chan-item:hover { background: #333; }
-        .active { background: #007bff; border-left: 5px solid #fff; }
-        .video-js { width: 100% !important; height: 100% !important; }
-
-        @media (max-width: 768px) {
-            .main-container { flex-direction: column; }
-            .sidebar { max-width: 100%; height: 45%; }
-            #video-container { height: 55%; }
-        }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        #video-container { flex: 2; background: #000; display: flex; align-items: center; justify-content: center; }
+        video { width: 100%; max-height: 100%; }
+        .sidebar { flex: 1; overflow-y: auto; background: #111; }
+        .chan { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; }
+        .active { background: #007bff; font-weight: bold; }
     </style>
 </head>
 <body>
-
-<header id="status">Select a Channel</header>
-
-<div class="main-container">
     <div id="video-container">
-        <video id="vid" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" playsinline></video>
+        <video id="video" controls playsinline></video>
     </div>
     <div class="sidebar" id="list"></div>
-</div>
 
-<script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
-<script>
-    const base = "https://80.225.184.218.nip.io/stream/";
-    const chans = [
-        { n: "beIN Sports Max 1 (1080p)", id: "ffbbd820f883ac57a4bee724a5f7ffd6" },
-        { n: "beIN Sports Max 2 (1080p)", id: "ecdbf804213a7ae9405d405c9ca5ec04" },
-        { n: "beIN Sports Max 3 (1080p)", id: "c08d33fa3ddf5f396325ff9d279f51df" },
-        { n: "beIN Sports Max 4 (1080p)", id: "5930c5a803a735cec31ee4385e7b3d44" },
-        { n: "beIN Sports Max 1 (720p)", id: "bcffcbf59e38efd700b5cf9b22dab383" },
-        { n: "beIN Sports Max 2 (720p)", id: "e8c669bfad00eeda6257f4580f13d3af" },
-        { n: "beIN Sports Max 3 (720p)", id: "c99bfc8f04fc3bdc07c6f54ad4954f1f" },
-        { n: "beIN Sports Max 4 (720p)", id: "8dae8c2e758d25504452b61b303c575c" },
-        { n: "beIN Sports Max 1 (480p)", id: "48e2502725c4de9ac3a4b0e0a91299a4" },
-        { n: "beIN Sports Max 2 (480p)", id: "7fe2e4a50a2f558d0b5098c93055177f" }
-    ];
+    <script>
+        const base = "https://80.225.184.218.nip.io/stream/";
+        const chans = [
+            {n: "beIN Sports Max 1 (1080p)", id: "ffbbd820f883ac57a4bee724a5f7ffd6"},
+            {n: "beIN Sports Max 2 (1080p)", id: "ecdbf804213a7ae9405d405c9ca5ec04"},
+            {n: "beIN Sports Max 3 (1080p)", id: "c08d33fa3ddf5f396325ff9d279f51df"},
+            {n: "beIN Sports Max 4 (1080p)", id: "5930c5a803a735cec31ee4385e7b3d44"},
+            {n: "beIN Sports Max 1 (720p)", id: "bcffcbf59e38efd700b5cf9b22dab383"},
+            {n: "beIN Sports Max 2 (720p)", id: "e8c669bfad00eeda6257f4580f13d3af"},
+            {n: "beIN Sports Max 3 (720p)", id: "c99bfc8f04fc3bdc07c6f54ad4954f1f"},
+            {n: "beIN Sports Max 4 (720p)", id: "8dae8c2e758d25504452b61b303c575c"},
+            {n: "beIN Sports Max 1 (480p)", id: "48e2502725c4de9ac3a4b0e0a91299a4"},
+            {n: "beIN Sports Max 2 (480p)", id: "7fe2e4a50a2f558d0b5098c93055177f"}
+        ];
 
-    const player = videojs('vid', { fluid: true });
-    const listDiv = document.getElementById('list');
+        const video = document.getElementById('video');
+        const list = document.getElementById('list');
+        let hls = new Hls();
 
-    chans.forEach((c) => {
-        const item = document.createElement('div');
-        item.className = 'chan-item';
-        item.innerText = c.n;
-        item.onclick = () => {
-            document.querySelectorAll('.chan-item').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
-            document.getElementById('status').innerText = "Playing: " + c.n;
-            player.src({ src: base + c.id, type: 'application/x-mpegURL' });
-            player.play();
-        };
-        listDiv.appendChild(item);
-    });
-</script>
+        chans.forEach(c => {
+            const d = document.createElement('div');
+            d.className = 'chan';
+            d.innerText = c.n;
+            d.onclick = () => {
+                document.querySelectorAll('.chan').forEach(el => el.classList.remove('active'));
+                d.classList.add('active');
+                
+                const url = base + c.id;
+                if (Hls.isSupported()) {
+                    hls.destroy();
+                    hls = new Hls();
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.addEventListener('loadedmetadata', () => video.play());
+                }
+            };
+            list.appendChild(d);
+        });
+    </script>
 </body>
 </html>
