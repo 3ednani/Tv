@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Sports Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background: #0b0b0b; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { background: #1a1a1a; padding: 15px; text-align: center; border-bottom: 2px solid #333; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        #player { flex: 3; background: #000; }
+        .sidebar { flex: 1; background: #1a1a1a; overflow-y: auto; border-left: 1px solid #333; max-width: 350px; }
+        .channel-item { padding: 15px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
+        .channel-item:hover { background: #333; }
+        .channel-item.active { background: #007bff; border-left: 5px solid #fff; }
+        .channel-name { font-weight: bold; font-size: 1.1rem; }
+        .group-title { font-size: 0.8rem; color: #888; margin-top: 5px; }
+
+        /* Mobile View Adjustment */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; }
+            .sidebar { max-width: 100%; height: 40%; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div id="status-title">Now Playing: Select a Channel</div>
+</header>
+
+<div class="main-container">
+    <div id="player"></div>
+    <div class="sidebar" id="playlist">
+        </div>
+</div>
+
+<script>
+    // List of your secure HTTPS channels
+    const channels = [
+        { name: "beIN Sports Max 1 (1080p)", id: "ffbbd820f883ac57a4bee724a5f7ffd6" },
+        { name: "beIN Sports Max 2 (1080p)", id: "ecdbf804213a7ae9405d405c9ca5ec04" },
+        { name: "beIN Sports Max 3 (1080p)", id: "c08d33fa3ddf5f396325ff9d279f51df" },
+        { name: "beIN Sports Max 4 (1080p)", id: "5930c5a803a735cec31ee4385e7b3d44" },
+        { name: "beIN Sports Max 1 (720p)", id: "bcffcbf59e38efd700b5cf9b22dab383" },
+        { name: "beIN Sports Max 2 (720p)", id: "e8c669bfad00eeda6257f4580f13d3af" },
+        { name: "beIN Sports Max 3 (720p)", id: "c99bfc8f04fc3bdc07c6f54ad4954f1f" },
+        { name: "beIN Sports Max 4 (720p)", id: "8dae8c2e758d25504452b61b303c575c" },
+        { name: "beIN Sports Max 1 (480p)", id: "48e2502725c4de9ac3a4b0e0a91299a4" },
+        { name: "beIN Sports Max 2 (480p)", id: "7fe2e4a50a2f558d0b5098c93055177f" }
+    ];
+
+    const baseUrl = "https://80.225.184.218.nip.io/stream/";
+
+    // Initialize the Player
+    var player = new Clappr.Player({
+        source: baseUrl + channels[0].id,
+        parentId: "#player",
+        autoPlay: false,
+        width: '100%',
+        height: '100%',
+        mimeType: "application/vnd.apple.mpegurl"
+    });
+
+    // Build the Sidebar List
+    const playlistDiv = document.getElementById('playlist');
+    const statusTitle = document.getElementById('status-title');
+
+    channels.forEach((ch, index) => {
+        const item = document.createElement('div');
+        item.className = 'channel-item';
+        if (index === 0) item.classList.add('active');
+        item.innerHTML = `
+            <span class="channel-name">${ch.name}</span>
+            <span class="group-title">African Cup ⚽</span>
+        `;
+
+        item.onclick = () => {
+            // Update UI
+            document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+            item.classList.add('active');
+            statusTitle.innerText = "Now Playing: " + ch.name;
+
+            // Change Player Source
+            player.configure({ source: baseUrl + ch.id });
+            player.play();
+        };
+        playlistDiv.appendChild(item);
+    });
+</script>
+
+</body>
+</html>
