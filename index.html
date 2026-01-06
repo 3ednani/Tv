@@ -4,35 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Sports Player</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
     <style>
-        body { margin: 0; padding: 0; background: #0b0b0b; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        header { background: #1a1a1a; padding: 15px; text-align: center; border-bottom: 2px solid #333; }
+        body { margin: 0; padding: 0; background: #0b0b0b; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { background: #1a1a1a; padding: 15px; text-align: center; border-bottom: 2px solid #333; font-weight: bold; }
         .main-container { display: flex; flex: 1; overflow: hidden; }
-        #player { flex: 3; background: #000; }
+        #video-container { flex: 3; background: #000; display: flex; justify-content: center; align-items: center; }
         .sidebar { flex: 1; background: #1a1a1a; overflow-y: auto; border-left: 1px solid #333; max-width: 350px; }
         .channel-item { padding: 15px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; }
         .channel-item:hover { background: #333; }
         .channel-item.active { background: #007bff; border-left: 5px solid #fff; }
         .channel-name { font-weight: bold; font-size: 1.1rem; }
-        .group-title { font-size: 0.8rem; color: #888; margin-top: 5px; }
+        .group-tag { font-size: 0.8rem; color: #888; margin-top: 5px; }
+
+        /* Ensure video player fills container */
+        .video-js { width: 100% !important; height: 100% !important; }
 
         @media (max-width: 768px) {
             .main-container { flex-direction: column; }
-            .sidebar { max-width: 100%; height: 40%; }
+            .sidebar { max-width: 100%; height: 45%; }
+            #video-container { height: 55%; }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div id="status-title">Select a Channel to Start</div>
-</header>
+<header id="status-title">Select a Channel to Start</header>
 
 <div class="main-container">
-    <div id="player"></div>
-    <div class="sidebar" id="playlist"></div>
+    <div id="video-container">
+        <video id="my-video" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" playsinline>
+            <p class="vjs-no-js">To view this video please enable JavaScript, and consider upgrading to a web browser that supports HTML5 video</p>
+        </video>
+    </div>
+    
+    <div class="sidebar" id="playlist">
+        </div>
 </div>
 
 <script>
@@ -51,37 +59,39 @@
 
     const baseUrl = "https://80.225.184.218.nip.io/stream/";
 
-    // Initialize Player with HLS support
-    var player = new Clappr.Player({
-        source: baseUrl + channels[0].id,
-        parentId: "#player",
-        autoPlay: false,
-        width: '100%',
-        height: '100%',
-        hlsMinimumDvrSize: 60,
-        playback: {
-            hlsjsConfig: {
-                enableWorker: true,
-                lowLatencyMode: true,
-            }
-        }
+    // Initialize Video.js
+    const player = videojs('my-video', {
+        fluid: true,
+        liveui: true,
+        responsive: true
     });
 
     const playlistDiv = document.getElementById('playlist');
-    const statusTitle = document.getElementById('status-title');
+    const headerTitle = document.getElementById('status-title');
 
-    channels.forEach((ch, index) => {
+    // Build the playlist
+    channels.forEach((ch) => {
         const item = document.createElement('div');
         item.className = 'channel-item';
-        item.innerHTML = `<span class="channel-name">${ch.name}</span><span class="group-title">African Cup ⚽</span>`;
+        item.innerHTML = `
+            <span class="channel-name">${ch.name}</span>
+            <span class="group-tag">African Cup ⚽</span>
+        `;
 
         item.onclick = () => {
+            // Update Active UI
             document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
             item.classList.add('active');
-            statusTitle.innerText = "Now Playing: " + ch.name;
-            player.load(baseUrl + ch.id);
+            headerTitle.innerText = "Now Playing: " + ch.name;
+
+            // Load and Play new source
+            player.src({
+                src: baseUrl + ch.id,
+                type: 'application/x-mpegURL' // This tells the browser to treat it as a stream
+            });
             player.play();
         };
+
         playlistDiv.appendChild(item);
     });
 </script>
